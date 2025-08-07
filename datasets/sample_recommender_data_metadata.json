@@ -1,0 +1,30 @@
+{
+  "n_users": 1000,
+  "n_items": 500,
+  "n_interactions": 22656,
+  "item_categories": [
+    "Electronics",
+    "Books",
+    "Clothing",
+    "Home & Garden",
+    "Sports",
+    "Music",
+    "Movies",
+    "Food",
+    "Health",
+    "Travel"
+  ],
+  "user_segments": [
+    "Tech Enthusiast",
+    "Book Lover",
+    "Fashion Forward",
+    "Home Decorator",
+    "Fitness Guru",
+    "Music Fan",
+    "Movie Buff",
+    "Foodie",
+    "Health Conscious",
+    "Travel Explorer"
+  ],
+  "generation_date": "2025-08-07T00:50:55.409257"
+}
