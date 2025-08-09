@@ -12,13 +12,21 @@ class RecommenderTrainer:
         self.env = RecommenderEnvironment(n_users, n_items)
         self.agent = DQNRecommender(
             state_dim=self.env.get_state_dim(),
-            action_dim=n_items
+            action_dim=self.env.n_items
         )
         
         self.episode_rewards = []
         self.episode_lengths = []
+
+    def set_environment(self, environment):
+        """Replace environment and rebuild agent to match new dims."""
+        self.env = environment
+        self.agent = DQNRecommender(
+            state_dim=self.env.get_state_dim(),
+            action_dim=self.env.n_items
+        )
         
-    def train(self, episodes=1000):
+    def train(self, episodes=1000, on_episode_end=None):
         """Train the recommender system"""
         print("Starting training...")
         
@@ -52,6 +60,18 @@ class RecommenderTrainer:
             # Track metrics
             self.episode_rewards.append(total_reward)
             self.episode_lengths.append(steps)
+
+            # Callback for live progress
+            if on_episode_end is not None:
+                try:
+                    on_episode_end(
+                        episode=episode,
+                        total_reward=total_reward,
+                        steps=steps,
+                        epsilon=self.agent.epsilon,
+                    )
+                except Exception as callback_error:
+                    print(f"on_episode_end callback error: {callback_error}")
             
             # Print progress
             if episode % 100 == 0:
@@ -166,7 +186,7 @@ if __name__ == "__main__":
     # Use with your DRL recommender
     adapter = DRLDataAdapter(drl_data)
     enhanced_env = adapter.create_enhanced_environment()
-    trainer.env = enhanced_env
+    trainer.set_environment(enhanced_env)
     
     # Train the model
     trainer.train(episodes=500)

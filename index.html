@@ -246,6 +246,20 @@
     <div class="container">
         <h1 class="title">🤖 Deep RL Recommender System Architecture</h1>
         
+        <div class="component" style="margin-bottom: 24px;">
+            <div class="component-title"><span class="component-icon">📊</span>Data Analysis</div>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                <figure style="margin:0;">
+                    <img src="analysis/Data-Analysis.png" alt="Dataset distributions" style="width:100%; height:auto; border-radius: 10px; border: 2px solid #e9ecef;" />
+                    <figcaption style="color:#6c757d; text-align:center; margin-top: 6px;">Dataset distributions and interaction statistics</figcaption>
+                </figure>
+                <figure style="margin:0;">
+                    <img src="analysis/Figure_1.png" alt="Training curves" style="width:100%; height:auto; border-radius: 10px; border: 2px solid #e9ecef;" />
+                    <figcaption style="color:#6c757d; text-align:center; margin-top: 6px;">Training rewards and episode lengths</figcaption>
+                </figure>
+            </div>
+        </div>
+        
         <div class="architecture-diagram">
             <!-- Environment Component -->
             <div class="component environment">
@@ -433,6 +447,61 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Live API Demo -->
+        <div class="interactive-section" style="margin-top: 30px;">
+            <h2 style="color: #495057; text-align: center; margin-bottom: 20px;">
+                🧪 Live Demo (Backend-Powered)
+            </h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                <div class="level-card">
+                    <h3 style="margin-top: 0;">Initialize Dataset</h3>
+                    <label>Users: <input id="initUsers" type="number" value="500" min="10" style="width: 90px;" /></label>
+                    <br/>
+                    <label>Items: <input id="initItems" type="number" value="100" min="10" style="width: 90px;" /></label>
+                    <br/>
+                    <label>Interactions: <input id="initInteractions" type="number" value="10000" min="100" style="width: 110px;" /></label>
+                    <br/>
+                    <label><input id="saveOutput" type="checkbox" /> Save to folder</label>
+                    <br/>
+                    <label>Output Dir: <input id="outputDir" type="text" value="datasets/generated" style="width: 180px;" /></label>
+                    <br/>
+                    <button onclick="initBackend()" style="margin-top: 10px;">Initialize Backend</button>
+                    <div id="initStatus" style="margin-top: 8px; color: #6c757d;"></div>
+                </div>
+
+                <div class="level-card">
+                    <h3 style="margin-top: 0;">Train</h3>
+                    <label>Episodes: <input id="trainEpisodes" type="number" value="30" min="1" style="width: 90px;" /></label>
+                    <br/>
+                    <button onclick="trainBackend()" style="margin-top: 10px;">Start Training</button>
+                    <div id="trainStatus" style="margin-top: 8px; color: #6c757d; max-height: 160px; overflow: auto;"></div>
+                </div>
+
+                <div class="level-card">
+                    <h3 style="margin-top: 0;">Recommend</h3>
+                    <label>User ID: <input id="recUser" type="number" value="42" min="0" style="width: 90px;" /></label>
+                    <br/>
+                    <label>Top-K: <input id="recK" type="number" value="5" min="1" style="width: 90px;" /></label>
+                    <br/>
+                    <button onclick="recommendForUser()" style="margin-top: 10px;">Get Recommendations</button>
+                    <div id="recStatus" style="margin-top: 8px; color: #6c757d;"></div>
+                </div>
+
+                <div class="level-card">
+                    <h3 style="margin-top: 0;">Metrics</h3>
+                    <button onclick="fetchMetrics()">Refresh Metrics</button>
+                    <div id="metrics" style="margin-top: 8px; color: #6c757d; max-height: 160px; overflow: auto;"></div>
+                </div>
+
+                <div class="level-card">
+                    <h3 style="margin-top: 0;">Pipeline</h3>
+                    <button onclick="fetchPipeline()">Show Pipeline</button>
+                    <div id="pipeline" style="margin-top: 8px; color: #6c757d; max-height: 160px; overflow: auto;"></div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script>
@@ -575,6 +644,123 @@
         
         // Initial animation
         setTimeout(animateDataFlow, 1000);
+
+        // --- Backend integration ---
+        const API_BASE = 'http://localhost:8000';
+
+        async function initBackend() {
+            const n_users = parseInt(document.getElementById('initUsers').value, 10);
+            const n_items = parseInt(document.getElementById('initItems').value, 10);
+            const n_interactions = parseInt(document.getElementById('initInteractions').value, 10);
+            const save_output = document.getElementById('saveOutput').checked;
+            const output_dir = document.getElementById('outputDir').value;
+            const el = document.getElementById('initStatus');
+            el.textContent = 'Initializing...';
+            try {
+                const res = await fetch(`${API_BASE}/api/init`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ n_users, n_items, n_interactions, save_output, output_dir })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Init failed');
+                el.textContent = `Initialized with users=${data.n_users}, items=${data.n_items}, state_dim=${data.state_dim}${data.saved ? ` (saved to ${data.output_dir})` : ''}`;
+            } catch (e) {
+                el.textContent = `Error: ${e.message}`;
+            }
+        }
+
+        async function trainBackend() {
+            const episodes = parseInt(document.getElementById('trainEpisodes').value, 10);
+            const el = document.getElementById('trainStatus');
+            el.textContent = 'Training...';
+            try {
+                const res = await fetch(`${API_BASE}/api/train`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ episodes })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Train failed');
+                const last = data.progress && data.progress.length ? data.progress[data.progress.length - 1] : null;
+                el.textContent = last ? `Done. Last episode=${last.episode}, reward=${last.total_reward.toFixed(3)}, steps=${last.steps}, epsilon=${last.epsilon.toFixed(3)}` : 'Done.';
+                // Update metrics panel too
+                renderMetrics(data.metrics);
+            } catch (e) {
+                el.textContent = `Error: ${e.message}`;
+            }
+        }
+
+        async function fetchMetrics() {
+            const el = document.getElementById('metrics');
+            el.textContent = 'Loading...';
+            try {
+                const res = await fetch(`${API_BASE}/api/metrics`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Metrics failed');
+                renderMetrics(data);
+            } catch (e) {
+                el.textContent = `Error: ${e.message}`;
+            }
+        }
+
+        function renderMetrics(metrics) {
+            const el = document.getElementById('metrics');
+            if (!metrics) { el.textContent = 'No metrics yet.'; return; }
+            const rewards = metrics.episode_rewards || [];
+            const lengths = metrics.episode_lengths || [];
+            const mov = metrics.moving_avg_rewards || [];
+            const eps = metrics.epsilon_history || [];
+            el.innerHTML = `
+                <div><strong>Total Episodes:</strong> ${rewards.length}</div>
+                <div><strong>Last Reward:</strong> ${rewards.length ? rewards[rewards.length-1].toFixed(3) : '-'}</div>
+                <div><strong>Last Length:</strong> ${lengths.length ? lengths[lengths.length-1] : '-'}</div>
+                <div><strong>Moving Avg(100):</strong> ${mov.length ? mov[mov.length-1].toFixed(3) : '-'}</div>
+                <div><strong>Last Epsilon:</strong> ${eps.length ? eps[eps.length-1].toFixed(3) : '-'}</div>
+            `;
+        }
+        async function fetchPipeline() {
+            const el = document.getElementById('pipeline');
+            el.textContent = 'Loading...';
+            try {
+                const res = await fetch(`${API_BASE}/api/pipeline`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Pipeline failed');
+                el.innerHTML = `
+                    <div><strong>Users:</strong> ${data.n_users}</div>
+                    <div><strong>Items:</strong> ${data.n_items}</div>
+                    <div><strong>Interactions:</strong> ${data.num_interactions}</div>
+                    <div><strong>Sparsity:</strong> ${data.sparsity_percent.toFixed(2)}%</div>
+                    <div><strong>Ratings:</strong> ${data.rating_count}</div>
+                    <div><strong>Interaction Matrix:</strong> ${data.interaction_matrix_shape}</div>
+                    <div><strong>Rating Matrix:</strong> ${data.rating_matrix_shape || 'N/A'}</div>
+                    <div><strong>User Features:</strong> ${data.user_feature_shape}</div>
+                    <div><strong>Item Features:</strong> ${data.item_feature_shape}</div>
+                    <div><strong>State Dim:</strong> ${data.state_dim}</div>
+                `;
+            } catch (e) {
+                el.textContent = `Error: ${e.message}`;
+            }
+        }
+
+        async function recommendForUser() {
+            const user_id = parseInt(document.getElementById('recUser').value, 10);
+            const n_recommendations = parseInt(document.getElementById('recK').value, 10);
+            const el = document.getElementById('recStatus');
+            el.textContent = 'Requesting...';
+            try {
+                const res = await fetch(`${API_BASE}/api/recommend`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id, n_recommendations })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Recommend failed');
+                el.textContent = `Top-${n_recommendations} for user ${user_id}: [${(data.recommendations || []).join(', ')}]`;
+            } catch (e) {
+                el.textContent = `Error: ${e.message}`;
+            }
+        }
     </script>
 </body>
 </html>

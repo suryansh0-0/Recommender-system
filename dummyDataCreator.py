@@ -388,26 +388,29 @@ class RecommenderDataGenerator:
         
         return self.item_content_features, self.user_content_features
     
-    def save_data(self, filepath_prefix="recommender_data"):
-        """Save all generated data to files"""
-        print(f"Saving data with prefix: {filepath_prefix}")
-        
+    def save_data(self, filepath_prefix="recommender_data", output_dir="datasets/generated"):
+        """Save all generated data to files under output_dir."""
+        import os
+        os.makedirs(output_dir, exist_ok=True)
+        base = os.path.join(output_dir, filepath_prefix)
+        print(f"Saving data with base: {base}*")
+
         # Save DataFrames
-        self.users_df.to_csv(f"{filepath_prefix}_users.csv", index=False)
-        self.items_df.to_csv(f"{filepath_prefix}_items.csv", index=False)
-        self.interactions_df.to_csv(f"{filepath_prefix}_interactions.csv", index=False)
-        
+        self.users_df.to_csv(f"{base}_users.csv", index=False)
+        self.items_df.to_csv(f"{base}_items.csv", index=False)
+        self.interactions_df.to_csv(f"{base}_interactions.csv", index=False)
+
         # Save matrices
-        np.save(f"{filepath_prefix}_user_item_matrix.npy", self.interaction_matrix.toarray())
-        
+        np.save(f"{base}_user_item_matrix.npy", self.interaction_matrix.toarray())
+
         if hasattr(self, 'rating_matrix'):
-            np.save(f"{filepath_prefix}_rating_matrix.npy", self.rating_matrix.toarray())
-        
+            np.save(f"{base}_rating_matrix.npy", self.rating_matrix.toarray())
+
         # Save content features
         if hasattr(self, 'item_content_features'):
-            np.save(f"{filepath_prefix}_item_features.npy", self.item_content_features)
-            np.save(f"{filepath_prefix}_user_features.npy", self.user_content_features)
-        
+            np.save(f"{base}_item_features.npy", self.item_content_features)
+            np.save(f"{base}_user_features.npy", self.user_content_features)
+
         # Save metadata
         metadata = {
             'n_users': self.n_users,
@@ -417,10 +420,10 @@ class RecommenderDataGenerator:
             'user_segments': self.user_segments,
             'generation_date': datetime.now().isoformat()
         }
-        
-        with open(f"{filepath_prefix}_metadata.json", 'w') as f:
+
+        with open(f"{base}_metadata.json", 'w') as f:
             json.dump(metadata, f, indent=2)
-        
+
         print("Data saved successfully!")
     
     def analyze_data(self):
@@ -532,7 +535,7 @@ class RecommenderDataGenerator:
 
 
 # Example usage
-def generate_sample_data():
+def generate_sample_data(output_dir="datasets/generated"):
     """Generate and save sample dataset"""
     print("=== Generating Sample Recommender Dataset ===")
     
@@ -551,7 +554,7 @@ def generate_sample_data():
     item_features, user_features = generator.generate_content_features()
     
     # Save data
-    generator.save_data("sample_recommender_data")
+    generator.save_data("sample_recommender_data", output_dir=output_dir)
     
     # Analyze data
     generator.analyze_data()

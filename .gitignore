@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*$py.class
+build/
+dist/
+.env/
+.venv/
+venv/
+ENV/
+.ipynb_checkpoints
+logs/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+frontend/node_modules/
+frontend/dist/
