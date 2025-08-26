@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRL Recommender System Architecture</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>DRL Recommender System Architecture</h1>
+    </header>
+
+    <main class="diagram-container">
+        
+        <!-- ================== ROW 1: DATA PREPARATION ================== -->
+        <section id="data-prep" class="diagram-row">
+            <h2>1. Data Preparation</h2>
+            <div class="card data-box" id="data-creator">
+                <!-- Icon: Data File -->
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <h3>dummyDataCreator</h3>
+                <p>Generates raw user-item interaction data for simulation.</p>
+                <code>generate_sample_data()</code>
+            </div>
+
+            <div class="card data-box" id="data-adapter">
+                <!-- Icon: Data Transform -->
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m10 16.5 2-2.5 2 2.5"></path><path d="m12 14 2 2.5 2-2.5"></path></svg>
+                <h3>DRLDataAdapter</h3>
+                <p>Transforms raw data into a format usable by the environment.</p>
+                <code>create_enhanced_environment()</code>
+            </div>
+        </section>
+
+        <!-- ================== ROW 2: TRAINING CORE ================== -->
+        <section id="training-core" class="diagram-row">
+            <h2>2. Training Core: RecommenderTrainer</h2>
+            <div class="card trainer-box" id="trainer">
+                
+                <!-- AGENT -->
+                <div class="card agent-box component-group" id="agent">
+                    <!-- Icon: Brain -->
+                    <svg viewBox="0 0 24 24"><path d="M9.5 12.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5c0 2-1.5 3.5-3.5 4.5c-2 1-4.5 2-4.5 4.5m-1 0c0-2.5-2.5-3.5-4.5-4.5C4.5 16 3 14.5 3 12.5c0-3 2.5-5 5.5-5S14 9.5 14 12.5"></path></svg>
+                    <h3>DQNRecommender (Agent)</h3>
+                    <div class="internal-components">
+                        <div class="card" id="q-network">
+                            <h4>Q-Network</h4>
+                            <p>Learns the policy</p>
+                        </div>
+                        <div class="card" id="target-network">
+                            <h4>Target Network</h4>
+                            <p>Provides stable targets</p>
+                        </div>
+                        <div class="card" id="memory">
+                            <h4>Experience Replay</h4>
+                            <p>Stores (s, a, r, s')</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ENVIRONMENT -->
+                <div class="card env-box component-group" id="environment">
+                    <!-- Icon: Gears -->
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <h3>RecommenderEnvironment</h3>
+                    <p>Simulates user sessions and provides feedback.</p>
+                    <code>step(action)</code>
+                    <code>reset()</code>
+                </div>
+
+                <!-- Labels for the training loop -->
+                <div class="label" id="label-state">1. State</div>
+                <div class="label" id="label-action">2. Action</div>
+                <div class="label" id="label-feedback">3. Reward, Next State</div>
+                <div class="label" id="label-remember">4. Remember</div>
+                <div class="label" id="label-replay">5. Replay</div>
+            </div>
+        </section>
+
+        <!-- ================== ROW 3: USAGE & OUTPUTS ================== -->
+        <section id="outputs" class="diagram-row">
+            <h2>3. Usage & Outputs</h2>
+            <div class="card output-box" id="evaluation">
+                <!-- Icon: Report -->
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                <h3>Evaluation</h3>
+                <p>Measures performance on test data.</p>
+                <code>evaluate()</code>
+            </div>
+
+            <div class="card output-box" id="visualization">
+                <!-- Icon: Chart -->
+                <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                <h3>Visualization</h3>
+                <p>Plots training progress.</p>
+                <code>plot_training_progress()</code>
+            </div>
+
+            <div class="card output-box" id="inference">
+                <!-- Icon: List -->
+                <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><line x1="12" y1="16" x2="12" y2="16"></line></svg>
+                <h3>Inference</h3>
+                <p>Generates live recommendations.</p>
+                <code>recommend_for_user()</code>
+            </div>
+        </section>
+        
+        <!-- SVG Canvas for Connectors -->
+        <svg class="connector-canvas">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" />
+                </marker>
+            </defs>
+            <!-- Data Prep Flow -->
+            <path id="arrow-data" class="arrow" d="M 460 215 C 500 215, 600 215, 640 215" />
+            <path id="arrow-env-setup" class="arrow dashed" d="M 750 215 C 750 250, 850 300, 875 350" />
+            <!-- Main RL Loop -->
+            <path id="arrow-state" class="arrow loop" d="M 750 480 C 700 480, 680 480, 640 480" />
+            <path id="arrow-action" class="arrow loop" d="M 640 520 C 680 520, 700 520, 750 520" />
+            <path id="arrow-feedback" class="arrow loop" d="M 800 600 C 700 650, 580 650, 480 600" />
+            <path id="arrow-replay" class="arrow loop" d="M 400 620 C 350 580, 350 500, 400 470" />
+            <!-- Trainer to Outputs -->
+            <path id="arrow-eval" class="arrow dashed" d="M 280 750 C 280 780, 280 810, 280 840" />
+            <path id="arrow-plot" class="arrow dashed" d="M 600 750 C 600 780, 600 810, 600 840" />
+            <path id="arrow-rec" class="arrow dashed" d="M 920 750 C 920 780, 920 810, 920 840" />
+        </svg>
+
+    </main>
+
+</body>
+</html>
